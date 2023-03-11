@@ -1,66 +1,66 @@
 module Main exposing (main)
 
 import Browser
-import Native exposing (Native)
+import Native exposing (Native, button, label)
 import Native.Attributes as NA
-import Native.Frame as Frame
+import Native.Event as Ev
 import Native.Layout as Layout
-import Native.Page as Page
-
-
-type NavPage
-    = HomePage
 
 
 type alias Model =
-    { rootFrame : Frame.Model NavPage
+    { count : Int
     }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { rootFrame = Frame.init HomePage }
+    ( { count = 0 }
     , Cmd.none
     )
 
 
 type Msg
-    = SyncFrame Bool
+    = Inc
+    | Dec
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        SyncFrame bool ->
-            ( { model | rootFrame = Frame.handleBack bool model.rootFrame }, Cmd.none )
+        Inc ->
+            ( { model | count = model.count + 1 }, Cmd.none )
+
+        Dec ->
+            ( { model | count = model.count - 1 }, Cmd.none )
 
 
-homePage : Model -> Native Msg
-homePage _ =
-    Page.pageWithActionBar SyncFrame
+makeButton : String -> msg -> Native msg
+makeButton btnText msg =
+    button
+        [ NA.class "primary"
+        , NA.text btnText
+        , Ev.onTap msg
+        ]
         []
-        (Native.actionBar [ NA.title "Elm Native Blank" ] [])
-        (Layout.flexboxLayout
-            [ NA.alignItems "center"
-            , NA.justifyContent "center"
-            , NA.height "100%"
-            ]
-            [ Native.label [ NA.class "main", NA.text "Hello From Elm" ] []
-            ]
-        )
-
-
-getPage : Model -> NavPage -> Native Msg
-getPage model page =
-    case page of
-        HomePage ->
-            homePage model
 
 
 view : Model -> Native Msg
 view model =
-    model.rootFrame
-        |> Frame.view [] (getPage model)
+    Layout.flexboxLayout
+        [ NA.alignItems "center"
+        , NA.justifyContent "space-between"
+        , NA.height "100%"
+        ]
+        [ makeButton "-" Dec
+        , label
+            [ NA.class "main"
+            , model.count
+                |> String.fromInt
+                |> NA.text
+            ]
+            []
+        , makeButton "+" Inc
+        ]
 
 
 subscriptions : Model -> Sub Msg
